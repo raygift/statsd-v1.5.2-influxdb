@@ -223,8 +223,12 @@ InfluxdbBackend.prototype.processFlush = function (timestamp, metrics) {
 
       for (histoKey in histoMetrics) {
         var value = histoMetrics[histoKey],
-          k = key + '.timer.histogram.' + histoKey;
-
+          k = key.split(',')[0] + '.timer.histogram.' + histoKey;
+if(key.split(',').length>=2){
+    for(var i=1;i<key.split(',').length;i++){
+       k += ',' + key.split(',')[i];
+    }
+}
         points.push(self.assembleEvent(k, [{value: value, time: timestamp}]));
       }
 
@@ -235,7 +239,12 @@ InfluxdbBackend.prototype.processFlush = function (timestamp, metrics) {
     // Iterate over normal metrics:
     for (timerKey in timerMetrics) {
       var value = timerMetrics[timerKey],
-          k = key + '.timer' + '.' + timerKey;
+          k = key.split(',')[0] + '.timer' + '.' + timerKey;
+if(key.split(',').length>=2){
+    for(var i=1;i<key.split(',').length;i++){
+       k += ',' + key.split(',')[i];
+    }
+}
 
       points.push(self.assembleEvent(k, [{value: value, time: timestamp}]));
     }
@@ -512,12 +521,12 @@ InfluxdbBackend.prototype.httpPOST_v09 = function (points) {
     return 'Payload size ' + size + ' KB';
   });
 
-
+var myLineProtocol = "";
 for(var i =0; i< points.length; i++){
-var myLineProtocol = myLineProtocol + points[i]["measurement"] + " value=" + points[i]["fields"]["value"] + "\n";
+    myLineProtocol += points[i]["measurement"] + " value=" + points[i]["fields"]["value"] + "\n";
 }
 req.write(myLineProtocol);
-
+console.log("write data is " + myLineProtocol);
 
 //  req.write(payload);
   req.end();
